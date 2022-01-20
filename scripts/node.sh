@@ -1,11 +1,12 @@
 #! /bin/bash
+set -x
+systemctl enable docker
+service docker start
 
-/bin/bash /vagrant/configs/join.sh -v
+/bin/bash /tmp/k8s/configs/join.sh -v
 
-sudo -i -u vagrant bash << EOF
-mkdir -p /home/vagrant/.kube
-sudo cp -i /vagrant/configs/config /home/vagrant/.kube/
-sudo chown 1000:1000 /home/vagrant/.kube/config
+cp -i /tmp/k8s/configs/config $HOME/.kube/
+chown 1000:1000 $HOME/.kube/config
 NODENAME=$(hostname -s)
 kubectl label node $(hostname -s) node-role.kubernetes.io/worker=worker-new
-EOF
+tail -f /dev/null

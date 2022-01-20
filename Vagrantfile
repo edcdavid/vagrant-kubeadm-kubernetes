@@ -7,29 +7,27 @@ Vagrant.configure("2") do |config|
     SHELL
     
     config.vm.define "master" do |master|
-      master.vm.box = "bento/ubuntu-18.04"
       master.vm.hostname = "master-node"
       master.vm.network "private_network", ip: "10.0.0.10"
-      master.vm.provider "virtualbox" do |vb|
-          vb.memory = 4048
-          vb.cpus = 2
+      master.vm.synced_folder ".", "/tmp/k8s", docker_consistency: "cached"
+      master.vm.provider "docker" do |d|
+          d.cmd = ["bash", "/tmp/k8s/scripts/master.sh"]
+          d.build_dir = "dockerfiles/common"
+          d.create_args = [ "--privileged", "--cap-add=ALL" ]
       end
-      master.vm.provision "shell", path: "scripts/common.sh"
-      master.vm.provision "shell", path: "scripts/master.sh"
     end
 
     (1..2).each do |i|
   
     config.vm.define "node0#{i}" do |node|
-      node.vm.box = "bento/ubuntu-18.04"
       node.vm.hostname = "worker-node0#{i}"
       node.vm.network "private_network", ip: "10.0.0.1#{i}"
-      node.vm.provider "virtualbox" do |vb|
-          vb.memory = 2048
-          vb.cpus = 1
+      node.vm.synced_folder ".", "/tmp/k8s", docker_consistency: "cached"
+      node.vm.provider "docker" do |d|
+          d.cmd = ["bash", "/tmp/k8s/scripts/node.sh"]
+          d.build_dir = "dockerfiles/common"
+          d.create_args = [ "--privileged", "--cap-add=ALL" ]
       end
-      node.vm.provision "shell", path: "scripts/common.sh"
-      node.vm.provision "shell", path: "scripts/node.sh"
     end
     
     end
